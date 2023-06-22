@@ -117,9 +117,9 @@ class App(ctk.CTk):
         self.monitor_canvas = CTkCanvas(self.canvas_back, bg='#FAF0E4', width=1100, height=130)
         self.monitor_canvas.grid(row=1, column=0, padx=40, columnspan=2, sticky="nsew")
 
-        button_canvas = CTkCanvas(self.canvas_back, bg='#FAF0E4', width=500, height=630)
-        button_canvas.grid(row=2, column=0, pady=20, padx=40, sticky="nsew")
-        self.screen_canvas = CTkCanvas(self.canvas_back, bg='#FAF0E4', width=480, height=630)
+        button_canvas = CTkCanvas(self.canvas_back, bg='#FAF0E4', width=550, height=630)
+        button_canvas.grid(row=2, column=0, pady=20, padx=30, sticky="nsew")
+        self.screen_canvas = CTkCanvas(self.canvas_back, bg='#FAF0E4', width=420, height=630)
         self.screen_canvas.grid(row=2, column=1, pady=20, padx=10, sticky="nsew")
         monitor_id = CTkLabel(self.monitor_canvas, text="Monitor serial number")
         monitor_id.pack(pady=10, padx=20, side=LEFT)
@@ -132,7 +132,8 @@ class App(ctk.CTk):
         connect = CTkButton(self.monitor_canvas, text="Connect", font=("Courier", 14, "bold"), command=self.set_monitor)
         connect.pack(side=RIGHT, padx=20, pady=20)
         CTkLabel(button_canvas, text="Data Section", font=("courier", 12, "bold")).grid(row=0, column=1)
-        CTkLabel(button_canvas, text=" ", font=("courier", 12, "bold")).grid(row=0, column=2)
+        CTkLabel(button_canvas, text=".................", font=("courier", 12, "bold")).grid(row=0, column=2)
+        CTkLabel(button_canvas, text=".................", font=("courier", 12, "bold")).grid(row=0, column=0)
         CTkButton(button_canvas, text="Monitor Date", command=self.get_date).grid(row=1, column=0, pady=10, padx=15)
         CTkButton(button_canvas, text="Monitor Details", command=self.get_details).grid(row=2, column=0, pady=10,
                                                                                         padx=15)
@@ -157,11 +158,14 @@ class App(ctk.CTk):
         CTkButton(button_canvas, text="Screen Off", command=self.screen_off).grid(row=4, column=0, pady=10, padx=15)
         CTkButton(button_canvas, text="Screen On", command=self.screen_on).grid(row=4, column=1, pady=10, padx=15)
         CTkLabel(button_canvas, text="Range Scale", font=("Courier", 14)).grid(row=5, column=0, pady=10, padx=15)
-        CTkButton(button_canvas, text="25%", command=lambda: self.range_scale("25"), width=30).grid(row=5, column=1, padx=15,
-                                                                                          sticky="W")
-        CTkButton(button_canvas, text="50%", command=lambda: self.range_scale("50"), width=30).grid(row=5, column=1, padx=15)
-        CTkButton(button_canvas, text="75%", command=lambda: self.range_scale("75"), width=30).grid(row=5, column=1, padx=15,
-                                                                                          sticky="E")
+        CTkButton(button_canvas, text="25%", command=lambda: self.range_scale("25"), width=30).grid(row=5, column=1,
+                                                                                                    padx=15,
+                                                                                                    sticky="W")
+        CTkButton(button_canvas, text="50%", command=lambda: self.range_scale("50"), width=30).grid(row=5, column=1,
+                                                                                                    padx=15)
+        CTkButton(button_canvas, text="75%", command=lambda: self.range_scale("75"), width=30).grid(row=5, column=1,
+                                                                                                    padx=15,
+                                                                                                    sticky="E")
         CTkLabel(button_canvas, text="Ultrasound Gain", font=("Courier", 14)).grid(row=6, column=0, pady=10, padx=15)
         CTkButton(button_canvas, text="^", command=self.gain_up, width=30).grid(row=6, column=1, padx=15, sticky="W")
         CTkButton(button_canvas, text="v", command=self.gain_down, width=30).grid(row=6, column=1, padx=15)
@@ -170,12 +174,24 @@ class App(ctk.CTk):
         CTkButton(button_canvas, text=">", command=self.flow_right, width=30).grid(row=7, column=1, padx=15)
         CTkLabel(self.screen_canvas, text="Screen response > ", font=("Courier", 14)).grid(row=3, column=0, pady=10,
                                                                                            padx=15, sticky="W")
-        CTkLabel(self.screen_canvas, text="Range Scale response > ", font=("Courier", 14)).grid(row=4, column=0, pady=10,
-                                                                                             padx=15)
+        CTkLabel(self.screen_canvas, text="Range Scale response > ", font=("Courier", 14)).grid(row=4, column=0,
+                                                                                                pady=10,
+                                                                                                padx=15)
         CTkLabel(self.screen_canvas, text="Gain response > ", font=("Courier", 14)).grid(row=5, column=0, pady=10,
                                                                                          padx=15, sticky="W")
         CTkLabel(self.screen_canvas, text="Flow response > ", font=("Courier", 14)).grid(row=6, column=0, pady=10,
                                                                                          padx=15, sticky="W")
+        CTkLabel(button_canvas, text="Scale Range", font=("Courier", 14)).grid(row=8, column=0, pady=10, padx=15)
+        CTkButton(button_canvas, text="50", command=lambda: self.scale("50"), width=30).grid(row=8, column=1,
+                                                                                             padx=15, sticky="W")
+        CTkButton(button_canvas, text="100", command=lambda: self.scale("100"), width=30).grid(row=8, column=1,
+                                                                                               padx=15)
+        CTkButton(button_canvas, text="150", command=lambda: self.scale("150"), width=30).grid(row=8, column=1,
+                                                                                               padx=15, sticky="E")
+        CTkButton(button_canvas, text="200", command=lambda: self.scale("200"), width=30).grid(row=8, column=2,
+                                                                                               padx=15, sticky="W")
+        CTkButton(button_canvas, text="250", command=lambda: self.scale("250"), width=30).grid(row=8, column=2,
+                                                                                               padx=15, sticky="E")
         self.Ip_entry.insert(0, "192.168.0.118")
         self.monitor_entry.insert(0, "111")
 
@@ -286,6 +302,9 @@ class App(ctk.CTk):
 
     def range_scale(self, scale):
         print(f"Range Scale - {scale}")
+
+    def scale(self, scale):
+        print(f"Scale = {scale}")
 
     def exit(self):
         self.destroy()
