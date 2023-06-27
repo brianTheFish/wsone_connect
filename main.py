@@ -24,6 +24,9 @@ echo = 'echo'  # do commands
 grep = 'grep'
 serial = 'serial'
 command = '/mnt/wsone/config/monitor/mc_mon.cfg'  # use with cat to show system ID
+gui_settings = "/mnt/wsone/config/system/current/gui_settings.cfg"
+system_memory = "/sys/dev/block/8:0/"
+connect = "/dev/ttyACM0"
 # backlight_off = 'SC,1 echo 1 > /sys/class/backlight/backlght/brightness'
 backlight_off = 'echo 1 > /sys/class/backlight/backlight/brightness'
 backlight_on = 'echo 6 > /sys/class/backlight/backlight/brightness'
@@ -137,11 +140,11 @@ class App(ctk.CTk):
         CTkButton(button_canvas, text="Monitor Date", command=self.get_date).grid(row=1, column=0, pady=10, padx=15)
         CTkButton(button_canvas, text="Monitor Details", command=self.get_details).grid(row=2, column=0, pady=10,
                                                                                         padx=15)
-
+        self.probe_coennected = self.screen_canvas.create_text(100, 15, text=" *** ", font=("Courier", 12))
         lab2 = CTkLabel(self.screen_canvas, text="Output from Buttons", font=("courier", 12, "bold"))
         lab2.grid(row=0, column=1)
         CTkLabel(self.screen_canvas, text="Date", font=("Courier", 14)).grid(row=1, column=0, pady=10, padx=15)
-        self.date_text = self.screen_canvas.create_text(250, 50, text=" ", font=("Courier", 12))
+        self.date_text = self.screen_canvas.create_text(280, 50, text=" ", font=("Courier", 12))
 
         CTkLabel(self.screen_canvas, text="Monitor Details", font=("Courier", 14)).grid(row=2, column=0, pady=10,
                                                                                         padx=15)
@@ -192,6 +195,22 @@ class App(ctk.CTk):
                                                                                                padx=15, sticky="W")
         CTkButton(button_canvas, text="250", command=lambda: self.scale("250"), width=30).grid(row=8, column=2,
                                                                                                padx=15, sticky="E")
+        CTkLabel(self.screen_canvas, text=">").grid(row=7, column=0, padx=10, sticky="W")
+        CTkButton(button_canvas, text="System details.", command=self.system_details).grid(row=9, column=0,
+                                                                                           pady=10, padx=15)
+        CTkLabel(self.screen_canvas, text="System Details", font=("Courier", 14)).grid(row=8, column=0, pady=10,
+                                                                                       padx=15)
+        self.system_box = CTkTextbox(self.screen_canvas, width=280, height=150)
+        self.system_box.grid(row=8, column=1, padx=10, pady=10)
+        CTkLabel(button_canvas, text="_").grid(row=10, column=0, pady=30)
+        CTkButton(button_canvas, text="System SD card memory status", command=self.system_memory).grid(row=11, column=0, padx=15, pady=30, sticky="S")
+        CTkLabel(self.screen_canvas, text="Memory Status...", font=("Curier", 14)).grid(row=9, column=0, padx=10, sticky="W")
+        CTkLabel(self.screen_canvas, text="Total", font=("Courier", 14)).grid(row=9, column=0, padx=20, sticky="E")
+        CTkLabel(self.screen_canvas, text="Partition", font=("Courier", 14)).grid(row=9, column=1, padx=20, sticky="W")
+        CTkLabel(self.screen_canvas, text="Size", font=("Courier", 14)).grid(row=9, column=1, padx=100, sticky="E")
+        self.sd_text = self.screen_canvas.create_text(180, 590, text=" *** ", font=("Courier", 12))
+        self.sd_part = self.screen_canvas.create_text(270, 590, text=" *** ", font=("Courier", 12))
+        self.sd_size = self.screen_canvas.create_text(400, 590, text=" *** ", font=("Courier", 12))
         self.Ip_entry.insert(0, "192.168.0.122")
         self.monitor_entry.insert(0, "111")
 
@@ -215,11 +234,19 @@ class App(ctk.CTk):
             l2 = f"{self.Ip_entry.get()}-set"
             self.Ip_entry.delete(0, END)
             self.Ip_entry.insert(0, l2)
+        connected = subprocess.getoutput(
+            ssh + " " + root + self.ip_address.get() + " " + cat + " " + connect)
+        print(connected)
+        if "file" in connected:
+            pass
+        else:
+            self.screen_canvas.itemconfig(self.probe_coennected, text="Dopp-link Connected")
 
     def get_date(self):
         date_out = subprocess.getoutput(ssh + " " + root + self.ip_address.get() + " " + date)
         if len(date_out) < 30:
             self.screen_canvas.itemconfig(self.date_text, text=date_out)
+
         else:
             CTkMessagebox(message="Date Error", icon="warning", option_1="Thanks")
 
@@ -308,6 +335,25 @@ class App(ctk.CTk):
 
     def scale(self, scale):
         print(f"Scale = {scale}")
+
+    def system_details(self):
+        result = subprocess.getoutput(ssh + " " + root + self.ip_address.get() + " " + cat + " " + gui_settings)
+        output = result.split()
+        version = output[2] + output[3] + "\n" + output[5] + " - " + output[6] + "\n" + output[7] + " - " + output[8] + \
+                  " " + output[9] + "\n" + output[10] + " - " + output[11] + "\n" + output[12] + " - " + output[13] + " " +\
+                  output[14] + ", " + output[15] + ", " + output[16] + "\n" + "Format  - " + output[17][:7] + " " + output[18] + " - " \
+                  + output[19] + output[20] + "\n\t" + output[21] + " " + output[22] + "\n\t" + output[23] + " " + output[24]
+        self.system_box.insert("0.0", version)
+
+    def system_memory(self):
+        size1 = subprocess.getoutput(ssh + " " + root + self.ip_address.get() + " " + cat + " " + system_memory + "size")
+        size1f = round(((int(size1) / 1000000) * 512) / 1000, 2)
+        self.screen_canvas.itemconfig(self.sd_text, text=f"{size1f}Gb")
+        partition = subprocess.getoutput(ssh + " " + root + self.ip_address.get() + " " + cat + " " + system_memory + "sda1/partition")
+        self.screen_canvas.itemconfig(self.sd_part, text=partition)
+        size2 = subprocess.getoutput(ssh + " " + root + self.ip_address.get() + " " + cat + " " + system_memory + "sda1/size")
+        size2f = round(((int(size2) / 1000000) * 512) / 1000, 2)
+        self.screen_canvas.itemconfig(self.sd_size, text=f"{size2f}Gb")
 
     def exit(self):
         self.destroy()
