@@ -25,8 +25,8 @@ grep = 'grep'
 serial = 'serial'
 command = '/mnt/wsone/config/monitor/mc_mon.cfg'  # use with cat to show system ID
 # backlight_off = 'SC,1 echo 1 > /sys/class/backlight/backlght/brightness'
-backlight_off = 'echo1 > /sys/class/backlight/backlght/brightness'
-backlight_on = 'SC,1 echo 7 > /sys/class/backlight/backlght/brightness'
+backlight_off = 'echo 1 > /sys/class/backlight/backlight/brightness'
+backlight_on = 'echo 6 > /sys/class/backlight/backlight/brightness'
 cmd_body = 'RxTowN=1'
 to_device = '> /dev/ttyACM0'
 tail = 'tail'
@@ -172,8 +172,8 @@ class App(ctk.CTk):
         CTkLabel(button_canvas, text="Flow Direction", font=("Courier", 14)).grid(row=7, column=0, pady=10, padx=15)
         CTkButton(button_canvas, text="<", command=self.flow_left, width=30).grid(row=7, column=1, padx=15, sticky="W")
         CTkButton(button_canvas, text=">", command=self.flow_right, width=30).grid(row=7, column=1, padx=15)
-        CTkLabel(self.screen_canvas, text="Screen response > ", font=("Courier", 14)).grid(row=3, column=0, pady=10,
-                                                                                           padx=15, sticky="W")
+        CTkLabel(self.screen_canvas, text=" > ", font=("Courier", 14)).grid(row=3, column=0, pady=10,
+                                                                            padx=15, sticky="W")
         CTkLabel(self.screen_canvas, text="Range Scale response > ", font=("Courier", 14)).grid(row=4, column=0,
                                                                                                 pady=10,
                                                                                                 padx=15)
@@ -192,7 +192,7 @@ class App(ctk.CTk):
                                                                                                padx=15, sticky="W")
         CTkButton(button_canvas, text="250", command=lambda: self.scale("250"), width=30).grid(row=8, column=2,
                                                                                                padx=15, sticky="E")
-        self.Ip_entry.insert(0, "192.168.0.118")
+        self.Ip_entry.insert(0, "192.168.0.122")
         self.monitor_entry.insert(0, "111")
 
     def set_monitor(self):
@@ -209,8 +209,7 @@ class App(ctk.CTk):
         if not self.Ip_entry.get():
             CTkMessagebox(message="Which IP Address?", icon="warning", option_1="Thanks")
         else:
-            output = subprocess.Popen(f"start cmd /k ssh root@{self.Ip_entry.get()} ", shell=True)
-            print(f"output {output.communicate()}")
+            subprocess.Popen(f"start cmd /k ssh root@{self.Ip_entry.get()} ", shell=True)
             os.system("taskkill /im cmd.exe /f")
             self.ip_address.set(self.Ip_entry.get())
             l2 = f"{self.Ip_entry.get()}-set"
@@ -225,6 +224,7 @@ class App(ctk.CTk):
             CTkMessagebox(message="Date Error", icon="warning", option_1="Thanks")
 
     def search_network(self):
+        self.network_box.delete("0.0", "end")
         dot_count = ""
         devices = os.popen('arp -a').readlines()
         for device in devices:
@@ -256,30 +256,33 @@ class App(ctk.CTk):
         results = result2.split()
         version1 = results[2] + " " + results[3] + "\n" + results[4] + " " + results[5] + "\n" + results[7] + "\t" + \
                    results[8] + "\n"
-        # part = results[9] + results[10] + "\n"
         model = results[14] + results[15] + results[16] + "  " + results[11] + results[12]
         self.box.insert("1.0", version1)
-        # self.box.insert("4.0", part)
         self.box.insert("5.0", model)
         self.box.update()
         serial_split = result2.split()[7:9]
-        print(serial_split)
+        if self.serial_number.get() == serial_split[1][1:-1]:
+            l1 = f"{self.monitor_entry.get()} Match"
+            self.monitor_entry.delete(0, END)
+            self.monitor_entry.insert(0, l1)
+        else:
+            l1 = f"{self.monitor_entry.get()} -----"
+            self.monitor_entry.delete(0, END)
+            self.monitor_entry.insert(0, l1)
 
     def update_network_box(self, data):
         self.network_box.insert("0.0", data)
         self.network_box.update()
 
     def screen_off(self):
-        # with subprocess.Popen(f"start cmd /k ssh root@{self.ip_address.get()} ", stdout=subprocess.PIPE, stdin=subprocess.PIPE) as process:
-        #     process.communicate(input="ls -a".encode())
-        output = subprocess.Popen(f"start cmd /k ssh root@{self.ip_address.get()} ", shell=True, stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE, text=True)
-        output.communicate(input="ipconfig")
+        subprocess.Popen(f"ssh root@{self.ip_address.get()} {backlight_off}", stdout=subprocess.PIPE,
+                         stdin=subprocess.PIPE)
+        CTkLabel(self.screen_canvas, text="Off").grid(row=3, column=0, sticky="E")
 
     def screen_on(self):
-        output = subprocess.Popen(f"start cmd /k ssh root@{self.ip_address.get()} ", stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE)
-        print(output)
+        subprocess.Popen(f"ssh root@{self.ip_address.get()} {backlight_on}", stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE)
+        CTkLabel(self.screen_canvas, text="On").grid(row=3, column=1)
 
     def velocity(self):
         print("Velocity")
